@@ -10,7 +10,7 @@ class _HomeState extends State<Home> {
   bool isAuth = false;
 
   Widget buildAuthScreen() {
-    return Text('Authenticated');
+    return Text("Authenticated");
   }
 
   Scaffold buildUnAuthScreen() {
@@ -20,7 +20,10 @@ class _HomeState extends State<Home> {
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            colors: [Colors.teal, Colors.purple],
+            colors: [
+              Colors.teal,
+              Colors.purple,
+            ],
           ),
         ),
         alignment: Alignment.center,
@@ -29,7 +32,7 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
-              'FlutterShare',
+              "FlutterShare",
               style: TextStyle(
                 fontFamily: "Signatra",
                 fontSize: 90.0,
@@ -37,17 +40,15 @@ class _HomeState extends State<Home> {
               ),
             ),
             GestureDetector(
-              onTap: () => print('tapped'),
+              onTap: () => print("tapped"),
               child: Container(
-                width: 260.0,
-                height: 60.0,
+                width: 260,
+                height: 60,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: AssetImage(
-                      'assets/images/google_signin_button.png',
-                    ),
-                    fit: BoxFit.cover,
-                  ),
+                      image:
+                          AssetImage('assets/images/google_signin_button.png'),
+                      fit: BoxFit.cover),
                 ),
               ),
             )
@@ -62,3 +63,59 @@ class _HomeState extends State<Home> {
     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }
+// class _HomeState extends State<Home> {
+//   bool isAuth = false;
+//
+//   Widget buildAuthScreen() {
+//     return Text('Authenticated');
+//   }
+//
+//   Scaffold buildUnAuthScreen() {
+//     return Scaffold(
+//       body: Container(
+//         decoration: BoxDecoration(
+//           gradient: LinearGradient(
+//             begin: Alignment.topRight,
+//             end: Alignment.bottomLeft,
+//             colors: [Colors.teal, Colors.purple],
+//           ),
+//         ),
+//         alignment: Alignment.center,
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: <Widget>[
+//             Text(
+//               'FlutterShare',
+//               style: TextStyle(
+//                 fontFamily: "Signatra",
+//                 fontSize: 90.0,
+//                 color: Colors.white,
+//               ),
+//             ),
+//             GestureDetector(
+//               onTap: () => print('tapped'),
+//               child: Container(
+//                 width: 260.0,
+//                 height: 60.0,
+//                 decoration: BoxDecoration(
+//                   image: DecorationImage(
+//                     image: AssetImage(
+//                       'assets/images/google_signin_button.png',
+//                     ),
+//                     fit: BoxFit.cover,
+//                   ),
+//                 ),
+//               ),
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
+//   }
+// }
