@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "672996272993",
+    "project_id": "fluttershare-ac3b6",
+    "storage_bucket": "fluttershare-ac3b6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:672996272993:android:d41646e1e8e8741f4c3320",
+        "android_client_info": {
+          "package_name": "com.farestrand.fluttershare"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "672996272993-d8tsmtcir4lhk1tct1hoaf4j2rel0rkk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.farestrand.fluttershare",
+            "certificate_hash": "9d19c5b39f33c843dd81722f1a31034872f75756"
+          }
+        },
+        {
+          "client_id": "672996272993-fapo5rs254euqi4s70r1rmd4chcf8rf7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBugoHeNPYu1-d88F6XwUX41KhjM-Vv5rI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "672996272993-fapo5rs254euqi4s70r1rmd4chcf8rf7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "672996272993-kdrlpaghb2um4bdofvnm5mrkf57a8irc.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.farestrand.fluttershare"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
