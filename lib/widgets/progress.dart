@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-Container circularProgress() {
+Container CircularProgress() {
   return Container(
     child: CircularProgressIndicator(
       valueColor: AlwaysStoppedAnimation(Colors.purple),
