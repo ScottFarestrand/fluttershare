@@ -1,13 +1,17 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../pages/timeline.dart';
 import '../pages/profile.dart';
 import '../pages/activity_feed.dart';
 import '../pages/upload.dart';
 import '../pages/search.dart';
+import '../pages/create_account.dart';
 
 final GoogleSignIn googleSignIn = GoogleSignIn();
+final usersRef = Firestore.instance.collection('users');
+final DateTime timestamp = DateTime.now();
 
 class Home extends StatefulWidget {
   @override
@@ -19,37 +23,56 @@ class _HomeState extends State<Home> {
   PageController pageController;
   int pageIndex = 0;
 
+  @override
   void initState() {
     super.initState();
     pageController = PageController();
+    // Detects when user signed in
     googleSignIn.onCurrentUserChanged.listen((account) {
       handleSignIn(account);
     }, onError: (err) {
-      print("error Signing in $err");
+      print('Error signing in: $err');
     });
-    googleSignIn
-        .signInSilently(
-      suppressErrors: false,
-    )
-        .then((GoogleSignInAccount account) {
-      print("Signed in Silently $account");
+    // Reauthenticate user when app is opened
+    googleSignIn.signInSilently(suppressErrors: false).then((account) {
       handleSignIn(account);
     }).catchError((err) {
-      print("Error Silently logging in $err");
+      print('Error signing in: $err');
     });
   }
 
   handleSignIn(GoogleSignInAccount account) {
     if (account != null) {
-      print("user Logged in");
+      createUserInFirestore();
       setState(() {
         isAuth = true;
-        print("Authorised = $isAuth");
       });
     } else {
       setState(() {
         isAuth = false;
-        print("authorized = $isAuth");
+      });
+    }
+  }
+
+  createUserInFirestore() async {
+    // 1) check if user exists in users collection in database (according to their id)
+    final GoogleSignInAccount user = googleSignIn.currentUser;
+    final DocumentSnapshot doc = await usersRef.document(user.id).get();
+
+    if (!doc.exists) {
+      // 2) if the user doesn't exist, then we want to take them to the create account page
+      final username = await Navigator.push(
+          context, MaterialPageRoute(builder: (context) => CreateAccount()));
+
+      // 3) get username from create account, use it to make new user document in users collection
+      usersRef.document(user.id).setData({
+        "id": user.id,
+        "username": username,
+        "photoUrl": user.photoUrl,
+        "email": user.email,
+        "displayName": user.displayName,
+        "bio": "",
+        "timestamp": timestamp
       });
     }
   }
@@ -77,16 +100,20 @@ class _HomeState extends State<Home> {
   onTap(int pageIndex) {
     pageController.animateToPage(
       pageIndex,
-      duration: Duration(milliseconds: 500),
+      duration: Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
   }
 
-  Widget buildAuthScreen() {
+  Scaffold buildAuthScreen() {
     return Scaffold(
       body: PageView(
-        children: [
-          Timeline(),
+        children: <Widget>[
+          // Timeline(),
+          RaisedButton(
+            child: Text('Logout'),
+            onPressed: logout,
+          ),
           ActivityFeed(),
           Upload(),
           Search(),
@@ -97,31 +124,26 @@ class _HomeState extends State<Home> {
         physics: NeverScrollableScrollPhysics(),
       ),
       bottomNavigationBar: CupertinoTabBar(
-        currentIndex: pageIndex,
-        onTap: onTap,
-        activeColor: Theme.of(context).primaryColor,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.whatshot),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications_active),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(
-              Icons.photo_camera,
-              size: 35.0,
+          currentIndex: pageIndex,
+          onTap: onTap,
+          activeColor: Theme.of(context).primaryColor,
+          items: [
+            BottomNavigationBarItem(icon: Icon(Icons.whatshot)),
+            BottomNavigationBarItem(icon: Icon(Icons.notifications_active)),
+            BottomNavigationBarItem(
+              icon: Icon(
+                Icons.photo_camera,
+                size: 35.0,
+              ),
             ),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.account_circle),
-          ),
-        ],
-      ),
+            BottomNavigationBarItem(icon: Icon(Icons.search)),
+            BottomNavigationBarItem(icon: Icon(Icons.account_circle)),
+          ]),
     );
+    // return RaisedButton(
+    //   child: Text('Logout'),
+    //   onPressed: logout,
+    // );
   }
 
   Scaffold buildUnAuthScreen() {
@@ -132,8 +154,8 @@ class _HomeState extends State<Home> {
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
             colors: [
-              Theme.of(context).primaryColor,
               Theme.of(context).accentColor,
+              Theme.of(context).primaryColor,
             ],
           ),
         ),
@@ -143,7 +165,7 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             Text(
-              "FlutterShare",
+              'FlutterShare',
               style: TextStyle(
                 fontFamily: "Signatra",
                 fontSize: 90.0,
@@ -153,13 +175,15 @@ class _HomeState extends State<Home> {
             GestureDetector(
               onTap: login,
               child: Container(
-                width: 260,
-                height: 60,
+                width: 260.0,
+                height: 60.0,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                      image:
-                          AssetImage('assets/images/google_signin_button.png'),
-                      fit: BoxFit.cover),
+                    image: AssetImage(
+                      'assets/images/google_signin_button.png',
+                    ),
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             )
@@ -171,7 +195,192 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    print("Building isAuth = $isAuth");
     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
   }
 }
+// class _HomeState extends State<Home> {
+//   bool isAuth = false;
+//   DateTime timeStamp = DateTime.now();
+//   PageController pageController;
+//   int pageIndex = 0;
+//   final GoogleSignInAccount user = googleSignIn.currentUser;
+//   final usersRef = Firestore.instance.collection('users');
+//
+//   void initState() {
+//     super.initState();
+//     pageController = PageController();
+//     googleSignIn.onCurrentUserChanged.listen((account) {
+//       handleSignIn(account);
+//     }, onError: (err) {
+//       print("error Signing in $err");
+//     });
+//     googleSignIn.signInSilently(suppressErrors: false,)
+//         .then((GoogleSignInAccount account) {
+//       print("Signed in Silently $account");
+//       handleSignIn(account);
+//     }).catchError((err) {
+//       print("Error Silently logging in $err");
+//     });
+//   }
+//
+//   createUserInFirestore() async {
+//     final DocumentSnapshot doc = await usersRef.document(user.id).get();
+//     if (!doc.exists) {
+//       final userName = await Navigator.push(
+//           context, MaterialPageRoute(builder: (context) => CreateAccount()));
+//       usersRef.document(user.id).setData({
+//         "id": user.id,
+//         "userName": userName,
+//         "photoUrl": user.photoUrl,
+//         "displayName": user.displayName,
+//         "email": user.email,
+//         "bio": "",
+//         "timeStamp": timeStamp,
+//       });
+//     }
+//
+//     //todo get user name from create account and use it to create documents
+//   }
+//
+//   handleSignIn(GoogleSignInAccount account) {
+//     print("Handling Sign In");
+//     if (account != null) {
+//       createUserInFirestore();
+//       setState(() {
+//         isAuth = true;
+//         print("Authorised = $isAuth");
+//       });
+//     } else {
+//       setState(() {
+//         isAuth = false;
+//         print("authorized = $isAuth");
+//       });
+//     }
+//   }
+//
+//   @override
+//   void dispose() {
+//     pageController.dispose();
+//     super.dispose();
+//   }
+//
+//   login() {
+//     print("Logging In");
+//     googleSignIn.signIn();
+//   }
+//
+//   logout() {
+//     googleSignIn.signOut();
+//   }
+//
+//   onPageChanged(int pageIndex) {
+//     setState(() {
+//       this.pageIndex = pageIndex;
+//     });
+//   }
+//
+//   onTap(int pageIndex) {
+//     pageController.animateToPage(
+//       pageIndex,
+//       duration: Duration(milliseconds: 500),
+//       curve: Curves.easeInOut,
+//     );
+//   }
+//
+//   Widget buildAuthScreen() {
+//     return Scaffold(
+//       body: PageView(
+//         children: [
+//           RaisedButton(
+//             child: Text("log out"),
+//             onPressed: logout,
+//           ),
+//           // Timeline(),
+//           ActivityFeed(),
+//           Upload(),
+//           Search(),
+//           Profile(),
+//         ],
+//         controller: pageController,
+//         onPageChanged: onPageChanged,
+//         physics: NeverScrollableScrollPhysics(),
+//       ),
+//       bottomNavigationBar: CupertinoTabBar(
+//         currentIndex: pageIndex,
+//         onTap: onTap,
+//         activeColor: Theme.of(context).primaryColor,
+//         items: [
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.whatshot),
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.notifications_active),
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(
+//               Icons.photo_camera,
+//               size: 35.0,
+//             ),
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.search),
+//           ),
+//           BottomNavigationBarItem(
+//             icon: Icon(Icons.account_circle),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//
+//   Scaffold buildUnAuthScreen() {
+//     return Scaffold(
+//       body: Container(
+//         decoration: BoxDecoration(
+//           gradient: LinearGradient(
+//             begin: Alignment.topRight,
+//             end: Alignment.bottomLeft,
+//             colors: [
+//               Theme.of(context).primaryColor,
+//               Theme.of(context).accentColor,
+//             ],
+//           ),
+//         ),
+//         alignment: Alignment.center,
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           crossAxisAlignment: CrossAxisAlignment.center,
+//           children: <Widget>[
+//             Text(
+//               "FlutterShare",
+//               style: TextStyle(
+//                 fontFamily: "Signatra",
+//                 fontSize: 90.0,
+//                 color: Colors.white,
+//               ),
+//             ),
+//             GestureDetector(
+//               onTap: login,
+//               child: Container(
+//                 width: 260,
+//                 height: 60,
+//                 decoration: BoxDecoration(
+//                   image: DecorationImage(
+//                       image:
+//                           AssetImage('assets/images/google_signin_button.png'),
+//                       fit: BoxFit.cover),
+//                 ),
+//               ),
+//             )
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     print("Building isAuth = $isAuth");
+//     return isAuth ? buildAuthScreen() : buildUnAuthScreen();
+//   }
+// }
