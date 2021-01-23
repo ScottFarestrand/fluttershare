@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:fluttershare/widgets/header.dart';
+import '../widgets/header.dart';
 
 class CreateAccount extends StatefulWidget {
   @override
@@ -7,19 +9,29 @@ class CreateAccount extends StatefulWidget {
 }
 
 class _CreateAccountState extends State<CreateAccount> {
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _formKey = GlobalKey<FormState>();
 
   String userName;
 
   submit() {
-    _formKey.currentState.save();
-    Navigator.pop(context, userName);
+    final form = _formKey.currentState;
+    if (form.validate()) {
+      _formKey.currentState.save();
+      SnackBar snackBar = SnackBar(content: Text("welcome $userName"));
+      _scaffoldKey.currentState.showSnackBar(snackBar);
+      Timer(Duration(seconds: 2), () {
+        Navigator.pop(context, userName);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext parentContext) {
     return Scaffold(
-      appBar: header(context, titleText: "Setup your Profile"),
+      key: _scaffoldKey,
+      appBar: header(context,
+          titleText: "Setup your Profile", removeBackButton: true),
       body: ListView(
         children: [
           Container(
@@ -38,6 +50,12 @@ class _CreateAccountState extends State<CreateAccount> {
                   child: Form(
                     key: _formKey,
                     child: TextFormField(
+                      validator: (val) {
+                        if (val.trim().length < 3 || val.isEmpty) {
+                          return "User Name is too Short";
+                        }
+                        return null;
+                      },
                       onSaved: (val) => userName = val,
                       decoration: InputDecoration(
                           border: OutlineInputBorder(),
